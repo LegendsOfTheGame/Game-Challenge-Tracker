@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legends of The Game · Memoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;700&family=Barlow+Condensed:wght@400;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #06050a;
+  --bg2:    #0d0b14;
+  --bg3:    #14111e;
+  --red:    #cc2200;
+  --red2:   #ff3311;
+  --red-g:  rgba(204,34,0,0.25);
+  --gold:   #b8860b;
+  --gold2:  #e8a820;
+  --gold-g: rgba(184,134,11,0.25);
+  --text:   #e8eaf0;
+  --text2:  #8892a4;
+  --text3:  #3a4255;
+  --border: rgba(255,255,255,0.07);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow Condensed', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.4;
+}
+
+/* AMBIENT GLOW */
+.ambient {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 10%, rgba(204,34,0,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 300px at 80% 80%, rgba(184,134,11,0.07) 0%, transparent 70%);
+}
+
+/* HERO */
+.hero {
+  position: relative; z-index: 10;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+/* WORDMARK */
+.wordmark {
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.2s forwards;
+}
+
+.wm-eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.wm-title {
+  font-family: 'Antonio', sans-serif;
+  font-size: clamp(48px, 10vw, 96px);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.wm-title .legends { color: var(--text); }
+.wm-title .of-the  { 
+  display: block;
+  font-size: 0.42em;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  color: var(--text2);
+  margin: 6px 0;
+}
+.wm-title .game {
+  background: linear-gradient(135deg, var(--red2) 0%, var(--gold2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.wm-rule {
+  display: flex; align-items: center; gap: 16px;
+  margin: 20px auto 0;
+  max-width: 400px;
+}
+.wm-rule-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.wm-rule-diamond {
+  width: 8px; height: 8px;
+  background: var(--gold2);
+  transform: rotate(45deg);
+  box-shadow: 0 0 12px var(--gold-g);
+}
+
+/* TAGLINE */
+.tagline {
+  font-family: 'Antonio', sans-serif;
+  font-size: clamp(16px, 3.5vw, 22px);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 64px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.45s forwards;
+}
+.tagline em {
+  font-style: normal;
+  color: var(--gold2);
+}
+
+/* PRODUCTS GRID */
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  max-width: 1000px;
+  width: 100%;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.65s forwards;
+}
+
+.product-card {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 28px 24px;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;
+}
+
+.product-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--red), var(--gold2));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.14);
+}
+.product-card:hover::before { opacity: 1; }
+
+.product-card.coming-soon {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Card corner accent */
+.product-card::after {
+  content: '';
+  position: absolute; bottom: 0; right: 0;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle at bottom right, rgba(184,134,11,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.pc-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.pc-tag::before {
+  content: '';
+  width: 16px; height: 1px;
+  background: var(--gold);
+}
+
+.pc-name {
+  font-family: 'Antonio', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.pc-name .mem { color: var(--gold2); }
+
+.pc-platform {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.pc-desc {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.pc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--red);
+  border-radius: 3px;
+  color: var(--red2);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.pc-btn:hover {
+  background: var(--red);
+  color: #fff;
+}
+.pc-btn.gold {
+  border-color: var(--gold);
+  color: var(--gold2);
+}
+.pc-btn.gold:hover {
+  background: var(--gold);
+  color: #000;
+}
+.pc-btn.disabled {
+  border-color: var(--text3);
+  color: var(--text3);
+  pointer-events: none;
+}
+
+.pc-badge {
+  position: absolute; top: 16px; right: 16px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.pc-badge.live { color: #22c55e; border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
+.pc-badge.soon { color: var(--text3); border-color: var(--text3); }
+.pc-badge.itch { color: var(--gold2); border-color: rgba(232,168,32,0.4); background: rgba(232,168,32,0.08); }
+
+/* FOOTER */
+.footer {
+  position: relative; z-index: 10;
+  padding: 40px 24px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.85s forwards;
+}
+
+.footer-links {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.footer-link {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.footer-link:hover { color: var(--gold2); }
+
+.footer-sep {
+  color: var(--text3);
+  font-size: 10px;
+}
+
+.footer-copy {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+}
+.footer-copy span { color: var(--gold); }
+
+/* GITHUB SVG ICON */
+.gh-icon { width: 14px; height: 14px; fill: currentColor; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .products { grid-template-columns: 1fr; }
+  .hero { padding: 40px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<main class="hero">
+
+  <div class="wordmark">
+    <div class="wm-eyebrow">Est. 2026 · Ontario, Canada</div>
+    <div class="wm-title">
+      <span class="legends">Legends</span>
+      <span class="of-the">of the</span>
+      <span class="game">Game</span>
+    </div>
+    <div class="wm-rule">
+      <div class="wm-rule-line"></div>
+      <div class="wm-rule-diamond"></div>
+      <div class="wm-rule-line"></div>
+    </div>
+  </div>
+
+  <div class="tagline">
+    Memoria Everything. <em>Forget Nothing.</em>
+  </div>
+
+  <div class="products">
+
+    <!-- CHALLENGE MEMORIA -->
+    <a class='product-card' href='/apex/index.html'>
+      <div class="pc-badge live">Live</div>
+      <div class="pc-tag">Challenge Tracker</div>
+      <div class="pc-name">Challenge <span class="mem">Memoria</span></div>
+      <div class="pc-platform">Web · Mobile · Apex Legends</div>
+      <div class="pc-desc">Track your weekly and daily Apex Legends challenges. Spotlight algorithm surfaces what to play and who to play it as.</div>
+      <span class="pc-btn">Open App →</span>
+    </a>
+
+    <!-- RESOURCE MEMORIA -->
+    <a class="product-card" href="https://legendsofgamedev.itch.io/resource-memoria-basic" target="_blank" rel="noopener">
+      <div class="pc-badge itch">Itch.io</div>
+      <div class="pc-tag">Resource Manager</div>
+      <div class="pc-name">Resource <span class="mem">Memoria</span></div>
+      <div class="pc-platform">Windows · macOS · Linux</div>
+      <div class="pc-desc">Gauge and resource tracker for streamers and gamers. Keep your cooldowns, charges, and counters visible at a glance.</div>
+      <span class="pc-btn gold">Get it on Itch.io →</span>
+    </a>
+
+    <!-- TIME MEMORIA -->
+    <div class="product-card coming-soon">
+      <div class="pc-badge soon">Coming Soon</div>
+      <div class="pc-tag">Completionist Tracker</div>
+      <div class="pc-name">Time <span class="mem">Memoria</span></div>
+      <div class="pc-platform">FFXIV · Dalamud Plugin</div>
+      <div class="pc-desc">100% completionist tracker for Final Fantasy XIV. Never lose track of what's left to do across the entire game.</div>
+      <span class="pc-btn disabled">In Development</span>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/LegendsOfTheGame" target="_blank" rel="noopener">
+      <svg class="gh-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+      </svg>
+      GitHub
+    </a>
+    <span class="footer-sep">·</span>
+    <a class="footer-link" href="https://legendsofgamedev.itch.io" target="_blank" rel="noopener">Itch.io</a>
+    <span class="footer-sep">·</span>
+    <span class="footer-link" style="cursor:default">legendmemoria.org</span>
+  </div>
+  <div class="footer-copy">
+    © 2026 <span>Legends of The Game</span> · HSC Services · Ontario, Canada
+  </div>
+</footer>
+
+</body>
+</html>
