@@ -33,6 +33,7 @@ number within that split. So the label `S30 P2W1` means Season 30, Split 2, week
 | S28 (Breach)         | 2026-02-10 18:00 | 13:00 EST        | Old code value; unconfirmed (the 17:00 UTC rule would give 17:00) |
 | S30 (Marked) Split 1 | 2026-08-04 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT); current `SEA_START` |
 | S30 (Marked) Split 2 | 2026-09-15 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT) |
+| S30 P2W6             | 2026-10-20 17:00 | 13:00 EDT        | Matches in-game countdown seen by the user on 2026-09-27 (22d 20h at 20:24 UTC) |
 | S30 (Marked) ends    | 2026-10-27 17:00 | 13:00 EDT        | Calculated: Split 1 = 6 weeks (from dates), Split 2 = 6 weeks (seen in game by the user); `SEA_WKS = 12` |
 
 Splits are 6 weeks each, 12 weeks per season. A search result estimated a 3 Nov end ("based on
