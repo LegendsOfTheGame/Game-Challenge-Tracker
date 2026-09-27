@@ -6,8 +6,11 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
 - `apex/index.html` — Challenge Memoria, the Apex Legends weekly/daily challenge tracker. Single
   self-contained file. User data lives only in the browser's `localStorage` (key `cm5`).
 - Season timing is hardcoded in the CONSTANTS block near the top of the `<script>` in
-  `apex/index.html`: `SEA_START`, `SEA_WKS`, `DAY_RST_UTC`. The header text and the `S28` season
-  chip are hardcoded in the markup and in the `iSeason` render code.
+  `apex/index.html`: `SEA_START` (season start, not split start), `SEA_WKS`, `DAY_RST_UTC`. The
+  season number also appears in the header text, the `iSeason` chip markup, and the `iSeason`
+  render code in `updInfo()` — update all of them at each new season.
+- Apex seasons start at 10:00 Pacific, so 17:00 UTC during daylight time (PDT) and 18:00 UTC
+  during standard time (PST).
 
 ## Apex season timeline
 
@@ -20,8 +23,9 @@ number within that split. So the label `S30 P2W1` means Season 30, Split 2, week
 
 | Season / split     | Start (UTC)      | Notes |
 |--------------------|------------------|-------|
-| Season 28 (Breach) | 2026-02-10 18:00 | Value still set in `SEA_START` in `apex/index.html` |
+| Season 28 (Breach) | 2026-02-10 18:00 | Previous value of `SEA_START` |
+| Season 30 Split 1  | 2026-08-04 17:00 | Given by the user (4 Aug, 10 am PT); current `SEA_START` |
 | Season 30 Split 2  | 2026-09-15 17:00 | Given by the user (15/9/26, 1700 UTC) |
+| Season 30 ends     | 2026-10-27 17:00 | Calculated: 12 weeks from season start |
 
-Note: as of 2026-09-27 the tracker's constants and labels still point at Season 28 and have not
-been updated for Season 30.
+Splits are 6 weeks each, 12 weeks per season.
