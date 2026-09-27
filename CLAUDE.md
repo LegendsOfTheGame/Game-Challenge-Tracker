@@ -36,6 +36,11 @@ number within that split. So the label `S30 P2W1` means Season 30, Split 2, week
 | S30 P2W6             | 2026-10-20 17:00 | 13:00 EDT        | Matches in-game countdown seen by the user on 2026-09-27 (22d 20h at 20:24 UTC) |
 | S30 (Marked) ends    | 2026-10-27 17:00 | 13:00 EDT        | Calculated: Split 1 = 6 weeks (from dates), Split 2 = 6 weeks (seen in game by the user); `SEA_WKS = 12` |
 
+Sources for season dates, in order of trust: the in-game timers the user reports, then
+<https://www.esportstales.com/apex-legends/season-end-date> (user's preferred reference for season
+start/end dates; check it when a new season or split is announced), then search results.
+Search-engine AI summaries are estimates, not confirmed dates.
+
 Splits are 6 weeks each, 12 weeks per season. A search result estimated a 3 Nov end ("based on
 three-month rotations"); that conflicts with the 6 weeks of Split 2 seen in game, so it's
 disregarded. If a season ever runs 13 weeks, set `SEA_WKS = 13`: `getPW()` maps week 13 to `P2W7`.
