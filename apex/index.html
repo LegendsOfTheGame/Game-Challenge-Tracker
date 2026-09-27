@@ -602,11 +602,11 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
 /* ================================================================
    CONSTANTS
 ================================================================ */
-// All Apex times are Pacific (EA HQ), DST-aware. Season start date is the Pacific calendar date.
-const SEA_START_PT = {y:2026,m:8,d:4}; // Season 30 (Marked), 2026-08-04
-const SEA_WKS      = 12;
-const WK_RST_PT    = 10; // weekly reset + season start, 10:00 PT
-const DAY_RST_PT   = 3;  // daily reset, 03:00 PT
+// Apex resets are pinned to UTC, so in Pacific time they shift with DST:
+//   weekly 17:00 UTC = 10am PDT / 9am PST, daily 10:00 UTC = 3am PDT / 2am PST.
+const SEA_START   = new Date("2026-08-04T17:00:00Z"); // Season 30 (Marked), 2026-08-04 10am PDT
+const SEA_WKS     = 12;
+const DAY_RST_UTC = 10;
 
 const CLASSES = ["Assault","Recon","Skirmisher","Support","Controller"];
 const WEAPONS = ["Assault Rifles","Submachine Guns","Light Machine Guns","Marksman Weapons","Sniper Rifles","Pistols","Shotguns","Ordnances","Akimbos","Red-Tier Weapons"];
@@ -735,25 +735,15 @@ function save(){localStorage.setItem("cm5",JSON.stringify(S));}
 /* ================================================================
    TIME
 ================================================================ */
-const _ptFmt=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",hourCycle:"h23",year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric"});
-function ptParts(dt){const o={};_ptFmt.formatToParts(dt).forEach(p=>{if(p.type!=="literal")o[p.type]=+p.value;});return o;}
-// Date for a Pacific wall-clock time (m is 1-based; d may overflow, Date.UTC normalises it)
-function ptTime(y,m,d,h){
-  const want=Date.UTC(y,m-1,d,h);let t=want+8*3600000;
-  for(let i=0;i<2;i++){const p=ptParts(new Date(t));t+=want-Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second);}
-  return new Date(t);
-}
-function weekStart(n){return ptTime(SEA_START_PT.y,SEA_START_PT.m,SEA_START_PT.d+7*n,WK_RST_PT);} // n=0 is season start
-function getCurWk(){const now=new Date();let n=0;while(n<SEA_WKS&&now>=weekStart(n))n++;return Math.max(n,1);}
+function getCurWk(){const ms=new Date()-SEA_START;if(ms<0)return 1;return Math.min(Math.floor(ms/(7*24*3600*1000))+1,SEA_WKS);}
 function getPW(wn){return wn<=6?{part:1,week:wn}:{part:2,week:wn-6};}
 function getCurPart(){return getPW(getCurWk()).part;}
-function nextWeeklyReset(){return weekStart(getCurWk());}
-function prevDailyReset(){
-  const now=new Date(),p=ptParts(now);
-  const t=ptTime(p.year,p.month,p.day,DAY_RST_PT);
-  return now>=t?t:ptTime(p.year,p.month,p.day-1,DAY_RST_PT);
+function nextWeeklyReset(){return new Date(SEA_START.getTime()+getCurWk()*7*24*3600*1000);}
+function nextDailyReset(){
+  const now=new Date();
+  const t=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),DAY_RST_UTC,0,0));
+  return now>=t?new Date(t.getTime()+86400000):t;
 }
-function nextDailyReset(){const t=prevDailyReset(),p=ptParts(t);return ptTime(p.year,p.month,p.day+1,DAY_RST_PT);}
 function fmtCd(ms){
   if(ms<=0)return"00:00:00";
   const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;
@@ -1637,7 +1627,7 @@ function setChipUrgency(id, msLeft, pulseThresh, blinkThresh){
 
 function updInfo(){
   const now=new Date(),wn=getCurWk(),{part,week}=getPW(wn);
-  const end=weekStart(SEA_WKS);
+  const end=new Date(SEA_START.getTime()+SEA_WKS*7*24*3600*1000);
   const dl=Math.ceil((end-now)/86400000);
   document.getElementById("iSeason").textContent=`S30 P${part}W${week}`;
   const weeklyMs=nextWeeklyReset()-now;
@@ -1652,10 +1642,10 @@ function updInfo(){
 }
 function chkResets(){
   const now=new Date(),wn=getCurWk();
-  const db=prevDailyReset().getTime();
+  const db=nextDailyReset().getTime()-86400000;
   if(_lastD===null){_lastD=db;}
-  else if(db>_lastD){
-    _lastD=db;
+  else if(now.getTime()>_lastD+86400000){
+    _lastD+=86400000;
     trackLegApp();
     const wpnSlot=S.daily.slots.find(s=>s.type==="dmg_weapon"&&s.active);
     if(wpnSlot&&wpnSlot.wpn){if(!S.stats)S.stats=JSON.parse(JSON.stringify(DS.stats));S.stats.weapons[wpnSlot.wpn]=(S.stats.weapons[wpnSlot.wpn]||0)+1;}
