@@ -1,6 +1,10 @@
 # Legends of the Game — project notes
 
-Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as-is (migrated from Netlify).
+Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as-is.
+
+- **Hosting: GitHub Pages**, deploying `main` from the repo root. Merging to `main` publishes the
+  site. `CNAME` (custom domain) and `.nojekyll` must stay in the repo root. The site was moved off
+  Netlify (the user found it a constant headache); don't suggest going back to it.
 
 - `index.html` — landing page
 - `apex/index.html` — Challenge Memoria, the Apex Legends weekly/daily challenge tracker. Single
