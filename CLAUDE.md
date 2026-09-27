@@ -14,6 +14,10 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
 A "split" is a mid-season release, similar to a Windows 11 feature update (e.g. 25H2): same
 season, new version. Times are UTC; dates below are written YYYY-MM-DD.
 
+Terminology: the tracker's "Part" is the game's "Split" (Part 2 = Split 2), and "W" is the week
+number within that split. So the label `S30 P2W1` means Season 30, Split 2, week 1. In the code,
+`getPW()` maps season weeks 1–6 to Part 1 and weeks 7–12 to Part 2.
+
 | Season / split     | Start (UTC)      | Notes |
 |--------------------|------------------|-------|
 | Season 28 (Breach) | 2026-02-10 18:00 | Value still set in `SEA_START` in `apex/index.html` |
