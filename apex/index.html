@@ -602,9 +602,9 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
 /* ================================================================
    CONSTANTS
 ================================================================ */
-// Apex resets are pinned to UTC, so in Pacific time they shift with DST:
-//   weekly 17:00 UTC = 10am PDT / 9am PST, daily 10:00 UTC = 3am PDT / 2am PST.
-const SEA_START   = new Date("2026-08-04T17:00:00Z"); // Season 30 (Marked), 2026-08-04 10am PDT
+// Apex resets are pinned to UTC, so local times shift with DST:
+//   weekly 17:00 UTC = 1pm EDT / 12pm EST, daily 10:00 UTC = 6am EDT / 5am EST.
+const SEA_START   = new Date("2026-08-04T17:00:00Z"); // Season 30 (Marked)
 const SEA_WKS     = 12;
 const DAY_RST_UTC = 10;
 
