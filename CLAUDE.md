@@ -1,6 +1,10 @@
 # Legends of the Game — project notes
 
-Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as-is (migrated from Netlify).
+Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as-is.
+
+- **Hosting: GitHub Pages**, deploying `main` from the repo root. Merging to `main` publishes the
+  site. `CNAME` (custom domain) and `.nojekyll` must stay in the repo root. The site was moved off
+  Netlify (the user found it a constant headache); don't suggest going back to it.
 
 - `index.html` — landing page
 - `apex/index.html` — Challenge Memoria, the Apex Legends weekly/daily challenge tracker. Single
@@ -26,7 +30,7 @@ season, new version. Times are UTC; dates below are written YYYY-MM-DD.
 
 Terminology: the tracker's "Part" is the game's "Split" (Part 2 = Split 2), and "W" is the week
 number within that split. So the label `S30 P2W1` means Season 30, Split 2, week 1. In the code,
-`getPW()` maps season weeks 1–6 to Part 1 and weeks 7–12 to Part 2.
+`getPW()` maps season weeks 1–6 to Part 1 and weeks 7+ to Part 2 (S30: weeks 7–13 = P2W1–P2W7).
 
 | Season / split       | Start (UTC)      | ET               | Notes |
 |----------------------|------------------|------------------|-------|
@@ -35,8 +39,8 @@ number within that split. So the label `S30 P2W1` means Season 30, Split 2, week
 | S30 (Marked) Split 1 | 2026-08-04 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT); current `SEA_START` |
 | S30 (Marked) Split 2 | 2026-09-15 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT) |
 | S30 P2W6             | 2026-10-20 17:00 | 13:00 EDT        | Matches in-game countdown seen by the user on 2026-09-27 (22d 20h at 20:24 UTC) |
-| S30 (Marked) ends    | 2026-10-27 17:00 | 13:00 EDT        | If 12 weeks (Split 2 = 6 weeks, as the user saw in game). Current `SEA_WKS = 12` |
-| S30 (Marked) ends?   | 2026-11-03 17:00 | 12:00 EST        | If 13 weeks (Split 2 = 7 weeks). esportstales estimate; matches the Aug-season pattern below |
+| S30 P2W7             | 2026-10-27 17:00 | 13:00 EDT        | Final week; may have no weekly challenge track of its own |
+| S30 (Marked) ends    | 2026-11-03 17:00 | 12:00 EST        | **Confirmed**: in-game "Season ends in 36 days" on 2026-09-27. 13 weeks, `SEA_WKS = 13` |
 
 Sources for season dates, in order of trust: the in-game timers the user reports, then
 <https://www.esportstales.com/apex-legends/season-end-date> (user's preferred reference for season
@@ -60,11 +64,10 @@ boundary in `getPW()` (week 6) must be checked every season, not assumed.
 | S27 Amped          | 2025-11-04 | 2026-02-10 | 14    | |
 | S28 Breach         | 2026-02-10 | 2026-05-05 | 12    | |
 | S29 Overclocked    | 2026-05-05 | 2026-08-04 | 13    | |
-| S30 Marked         | 2026-08-04 | ?          | 12 or 13 | 6 + 6 or 6 + 7 |
+| S30 Marked         | 2026-08-04 | 2026-11-03 | 13    | 6 + 7 |
 
 Pattern since S20: Feb season 12 weeks, May 13, Aug 13, Nov 14 (seasons start on the first or
-second Tuesday of those months). Both previous August seasons (S22, S26) ran 13 weeks with the
-longer split second, which points to S30 ending 2026-11-03. The user saw 6 weeks of Split 2 in
-game, which points to 2026-10-27. Settle it with the in-game season timer once P2W6 starts
-(2026-10-20): 7 days left → 27 Oct, 14 days → 3 Nov. For 13 weeks set `SEA_WKS = 13`: `getPW()`
-already maps week 13 to `P2W7`.
+second Tuesday of those months). S30 followed it (13 weeks, longer split second, like S22).
+Lesson: the number of weekly challenge tracks visible in game is not the number of weeks in the
+split. Use the in-game "Season ends in N days" timer to confirm the end date each season.
+Expect S31 to start 2026-11-03 17:00 UTC and, per the pattern, run 14 weeks.
