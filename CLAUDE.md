@@ -33,9 +33,8 @@ number within that split. So the label `S30 P2W1` means Season 30, Split 2, week
 | S28 (Breach)         | 2026-02-10 18:00 | 13:00 EST        | Old code value; unconfirmed (the 17:00 UTC rule would give 17:00) |
 | S30 (Marked) Split 1 | 2026-08-04 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT); current `SEA_START` |
 | S30 (Marked) Split 2 | 2026-09-15 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT) |
-| S30 (Marked) ends    | 2026-10-27 17:00 | 13:00 EDT        | What the tracker uses: `SEA_WKS = 12` |
-| S30 (Marked) ends?   | 2026-11-03 17:00 | 12:00 EST        | **Unconfirmed estimate** from a search result ("around Nov 3, based on three-month rotations"). Would be 13 weeks, Split 2 = 7 weeks |
+| S30 (Marked) ends    | 2026-10-27 17:00 | 13:00 EDT        | Calculated: Split 1 = 6 weeks (from dates), Split 2 = 6 weeks (seen in game by the user); `SEA_WKS = 12` |
 
-Splits are assumed to be 6 weeks each, 12 weeks per season, but the season end is not
-officially confirmed. If the season runs 13 weeks, set `SEA_WKS = 13`: `getPW()` already maps
-week 13 to `P2W7`. US daylight saving ends 2026-11-01, so a 3 Nov end is 12:00 EST.
+Splits are 6 weeks each, 12 weeks per season. A search result estimated a 3 Nov end ("based on
+three-month rotations"); that conflicts with the 6 weeks of Split 2 seen in game, so it's
+disregarded. If a season ever runs 13 weeks, set `SEA_WKS = 13`: `getPW()` maps week 13 to `P2W7`.
