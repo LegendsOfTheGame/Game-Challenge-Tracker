@@ -605,7 +605,7 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
 // Apex resets are pinned to UTC, so local times shift with DST:
 //   weekly 17:00 UTC = 1pm EDT / 12pm EST, daily 10:00 UTC = 6am EDT / 5am EST.
 const SEA_START   = new Date("2026-08-04T17:00:00Z"); // Season 30 (Marked)
-const SEA_WKS     = 12;
+const SEA_WKS     = 13; // S30: Split 1 = 6 weeks, Split 2 = 7 weeks (in-game timer, 2026-09-27)
 const DAY_RST_UTC = 10;
 
 const CLASSES = ["Assault","Recon","Skirmisher","Support","Controller"];
@@ -1628,7 +1628,7 @@ function setChipUrgency(id, msLeft, pulseThresh, blinkThresh){
 function updInfo(){
   const now=new Date(),wn=getCurWk(),{part,week}=getPW(wn);
   const end=new Date(SEA_START.getTime()+SEA_WKS*7*24*3600*1000);
-  const dl=Math.ceil((end-now)/86400000);
+  const dl=Math.floor((end-now)/86400000); // whole days, like the in-game timer
   document.getElementById("iSeason").textContent=`S30 P${part}W${week}`;
   const weeklyMs=nextWeeklyReset()-now;
   const dailyMs=nextDailyReset()-now;
