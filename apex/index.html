@@ -220,7 +220,7 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
     <div class="hdr-top">
       <div>
         <div class="hdr-title">Challenge <span>Memoria</span></div>
-        <div class="hdr-sub">APEX LEGENDS &middot; SEASON 28 BREACH</div>
+        <div class="hdr-sub">APEX LEGENDS &middot; SEASON 30 MARKED</div>
       </div>
       <div class="hdr-right">
         <div class="theme-picker">
@@ -234,7 +234,7 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
   </div>
 
   <div class="info-bar">
-    <div class="chip"><div class="chip-lbl">Season</div><div class="chip-val" id="iSeason">S28</div></div>
+    <div class="chip"><div class="chip-lbl">Season</div><div class="chip-val" id="iSeason">S30</div></div>
     <div class="chip"><div class="chip-lbl">Weekly Reset</div><div class="chip-val b" id="iWeekly">--:--</div></div>
     <div class="chip"><div class="chip-lbl">Daily Reset</div><div class="chip-val b" id="iDaily">--:--</div></div>
     <div class="chip"><div class="chip-lbl">Season Ends</div><div class="chip-val" id="iEnd">--d</div></div>
@@ -602,7 +602,9 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
 /* ================================================================
    CONSTANTS
 ================================================================ */
-const SEA_START   = new Date("2026-02-10T18:00:00Z");
+// Apex resets are pinned to UTC, so local times shift with DST:
+//   weekly 17:00 UTC = 1pm EDT / 12pm EST, daily 10:00 UTC = 6am EDT / 5am EST.
+const SEA_START   = new Date("2026-08-04T17:00:00Z"); // Season 30 (Marked)
 const SEA_WKS     = 12;
 const DAY_RST_UTC = 10;
 
@@ -1627,7 +1629,7 @@ function updInfo(){
   const now=new Date(),wn=getCurWk(),{part,week}=getPW(wn);
   const end=new Date(SEA_START.getTime()+SEA_WKS*7*24*3600*1000);
   const dl=Math.ceil((end-now)/86400000);
-  document.getElementById("iSeason").textContent=`S28 P${part}W${week}`;
+  document.getElementById("iSeason").textContent=`S30 P${part}W${week}`;
   const weeklyMs=nextWeeklyReset()-now;
   const dailyMs=nextDailyReset()-now;
   document.getElementById("iWeekly").textContent=fmtCd(weeklyMs);
