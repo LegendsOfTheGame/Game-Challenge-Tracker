@@ -2,9 +2,16 @@
 
 Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as-is.
 
-- **Hosting: GitHub Pages**, deploying `main` from the repo root. Merging to `main` publishes the
-  site. `CNAME` (custom domain) and `.nojekyll` must stay in the repo root. The site was moved off
-  Netlify (the user found it a constant headache); don't suggest going back to it.
+- **Hosting: this repo does not publish the site.** GitHub Pages is off here. legendmemoria.org
+  is served by GitHub Pages from `main` of the **LegendsOfTheGame/legendmemoria** repo (checked
+  2026-11-01). Merging to `main` here publishes nothing. To publish the tracker:
+  1. Merge the change to `main` here.
+  2. Copy `apex/index.html` to `apex/index.html` in the legendmemoria repo.
+  3. Remove the Google Fonts `<link>` and the `manifest.json` `<link>`. That site loads nothing
+     from other hosts, and it has no manifest.
+  4. Push legendmemoria `main`. That push publishes the site.
+  The site was moved off Netlify (the user found it a constant headache); don't suggest going
+  back to it.
 
 - `index.html` — landing page
 - `apex/index.html` — Challenge Memoria, the Apex Legends weekly/daily challenge tracker. Single
