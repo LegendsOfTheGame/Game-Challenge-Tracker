@@ -9,38 +9,46 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
 - `index.html` — landing page
 - `apex/index.html` — Challenge Memoria, the Apex Legends weekly/daily challenge tracker. Single
   self-contained file. User data lives only in the browser's `localStorage` (key `cm5`).
-- Season timing is hardcoded in the CONSTANTS block near the top of the `<script>` in
-  `apex/index.html`: `SEA_START` (season start in UTC, not split start), `SEA_WKS`,
-  `DAY_RST_UTC`. The season number also appears in the header text, the `iSeason` chip markup, and the `iSeason`
-  render code in `updInfo()` — update all of them at each new season.
+- Season timing is in the `SEASONS` list in the CONSTANTS block near the top of the `<script>`
+  in `apex/index.html`. Each entry has `num`, `name`, `start` (season start in UTC, not split
+  start), `wks` and `p1Wks` (weeks in Split 1). Add the next season as a new entry when it is
+  announced; do not edit the old one. The tracker uses the last entry whose start has passed. At
+  the switch it moves the previous season's weekly challenges into `S.archive[<season>]` in the
+  save, so a push before launch is safe. The header and the `iSeason` chip read from the entry.
 - **Write times in UTC**, with Eastern Time (ET) alongside when helpful. This is the user's
   preference. EA announces in Pacific Time, so convert PT times you're given.
-- Resets are pinned to UTC and never move in UTC. In local time zones they shift an hour when
-  daylight saving starts or ends. The code stores UTC (`SEA_START`, `DAY_RST_UTC`).
+- **Weekly, season and split resets follow 10:00 Pacific, so they move in UTC.** Confirmed
+  2026-11-01: the in-game Battle Pass Weeklies timer put the S30 end at 18:00 UTC on 2026-11-03,
+  and esports.gg gave the S31 start as 10:00 PT. The week arithmetic in the code steps 7 days from
+  `start`, so a season that crosses a US DST change (S32 crosses 2027-03-14) needs a fix.
 
-  | Reset                                | UTC   | ET summer (EDT) | ET winter (EST) | PT summer / winter |
-  |--------------------------------------|-------|-----------------|-----------------|--------------------|
-  | Weekly, season and split start (Tue) | 17:00 | 13:00           | 12:00           | 10:00 / 09:00      |
-  | Daily                                | 10:00 | 06:00           | 05:00           | 03:00 / 02:00      |
+  | Reset                                | PT    | UTC summer (PDT) | UTC winter (PST) | ET            |
+  |--------------------------------------|-------|------------------|------------------|---------------|
+  | Weekly, season and split start (Tue) | 10:00 | 17:00            | 18:00            | 13:00         |
+  | Daily (`DAY_RST_UTC`)                | ?     | 10:00            | not yet checked  |               |
 
 ## Apex season timeline
 
 A "split" is a mid-season release, similar to a Windows 11 feature update (e.g. 25H2): same
 season, new version. Times are UTC; dates below are written YYYY-MM-DD.
 
-Terminology: the tracker's "Part" is the game's "Split" (Part 2 = Split 2), and "W" is the week
-number within that split. So the label `S30 P2W1` means Season 30, Split 2, week 1. In the code,
-`getPW()` maps season weeks 1–6 to Part 1 and weeks 7+ to Part 2 (S30: weeks 7–13 = P2W1–P2W7).
+Terminology: the tracker's "Part" is the game's "Split" (Part 2 = Split 2). Labels use the
+Windows-release style the community uses: "H" is the split and "W" is the week number within
+that split. So `S30H2W1` means Season 30, Split 2, week 1 (`wkLabel()` in the code). Saves also
+carry a `weekLabels` map with these labels; the code itself keys weeks by season week number. In the code,
+`getPW()` maps season weeks 1–`p1Wks` to Part 1 and the rest to Part 2 (S30: `p1Wks` 6, weeks
+7–13 = P2W1–P2W7).
 
 | Season / split       | Start (UTC)      | ET               | Notes |
 |----------------------|------------------|------------------|-------|
 | S28 (Breach)         | 2026-02-10       |                  | Ended 2026-05-05 (esportstales). Old code had 18:00 UTC; time unconfirmed |
 | S29 (Overclocked)    | 2026-05-05       |                  | Ended 2026-08-04 (esportstales) |
-| S30 (Marked) Split 1 | 2026-08-04 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT); current `SEA_START` |
+| S30 (Marked) Split 1 | 2026-08-04 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT) |
 | S30 (Marked) Split 2 | 2026-09-15 17:00 | 13:00 EDT        | Confirmed (user + search result, 10 am PT) |
 | S30 P2W6             | 2026-10-20 17:00 | 13:00 EDT        | Matches in-game countdown seen by the user on 2026-09-27 (22d 20h at 20:24 UTC) |
 | S30 P2W7             | 2026-10-27 17:00 | 13:00 EDT        | Final week; may have no weekly challenge track of its own |
-| S30 (Marked) ends    | 2026-11-03 17:00 | 12:00 EST        | **Confirmed**: in-game "Season ends in 36 days" on 2026-09-27. 13 weeks, `SEA_WKS = 13` |
+| S30 (Marked) ends    | 2026-11-03 18:00 | 13:00 EST        | **Confirmed**: in-game "Season ends in 36 days" on 2026-09-27; Battle Pass Weeklies "Expires: 1d 22h" at 19:10 UTC on 2026-11-01. 13 weeks |
+| S31 (Cipher) starts  | 2026-11-03 18:00 | 13:00 EST        | **Confirmed**: esports.gg, 10 am PT. Length and split weeks unknown until the launch screenshot; `wks` 14 and `p1Wks` 6 are pre-season guesses |
 
 Sources for season dates, in order of trust: the in-game timers the user reports, then
 <https://www.esportstales.com/apex-legends/season-end-date> (user's preferred reference for season
@@ -49,8 +57,8 @@ Search-engine AI summaries are estimates, not confirmed dates.
 
 ### Season length history (from esportstales)
 
-Season length varies (12–14 weeks), and splits are not always equal. `SEA_WKS` and the split
-boundary in `getPW()` (week 6) must be checked every season, not assumed.
+Season length varies (12–14 weeks), and splits are not always equal. `wks` and `p1Wks` in
+`SEASONS` must be checked every season, not assumed.
 
 | Season             | Start      | End        | Weeks | Splits (weeks) |
 |--------------------|------------|------------|-------|----------------|
@@ -70,4 +78,4 @@ Pattern since S20: Feb season 12 weeks, May 13, Aug 13, Nov 14 (seasons start on
 second Tuesday of those months). S30 followed it (13 weeks, longer split second, like S22).
 Lesson: the number of weekly challenge tracks visible in game is not the number of weeks in the
 split. Use the in-game "Season ends in N days" timer to confirm the end date each season.
-Expect S31 to start 2026-11-03 17:00 UTC and, per the pattern, run 14 weeks.
+S31 starts 2026-11-03 18:00 UTC and, per the pattern, may run 14 weeks.

@@ -220,7 +220,7 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
     <div class="hdr-top">
       <div>
         <div class="hdr-title">Challenge <span>Memoria</span></div>
-        <div class="hdr-sub">APEX LEGENDS &middot; SEASON 30 MARKED</div>
+        <div class="hdr-sub" id="hdrSub">APEX LEGENDS</div>
       </div>
       <div class="hdr-right">
         <div class="theme-picker">
@@ -234,7 +234,7 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
   </div>
 
   <div class="info-bar">
-    <div class="chip"><div class="chip-lbl">Season</div><div class="chip-val" id="iSeason">S30</div></div>
+    <div class="chip"><div class="chip-lbl">Season</div><div class="chip-val" id="iSeason">--</div></div>
     <div class="chip"><div class="chip-lbl">Weekly Reset</div><div class="chip-val b" id="iWeekly">--:--</div></div>
     <div class="chip"><div class="chip-lbl">Daily Reset</div><div class="chip-val b" id="iDaily">--:--</div></div>
     <div class="chip"><div class="chip-lbl">Season Ends</div><div class="chip-val" id="iEnd">--d</div></div>
@@ -602,11 +602,29 @@ body{color:var(--text);font-family:"Barlow",sans-serif;font-size:15px;line-heigh
 /* ================================================================
    CONSTANTS
 ================================================================ */
-// Apex resets are pinned to UTC, so local times shift with DST:
-//   weekly 17:00 UTC = 1pm EDT / 12pm EST, daily 10:00 UTC = 6am EDT / 5am EST.
-const SEA_START   = new Date("2026-08-04T17:00:00Z"); // Season 30 (Marked)
-const SEA_WKS     = 13; // S30: Split 1 = 6 weeks, Split 2 = 7 weeks (in-game timer, 2026-09-27)
-const DAY_RST_UTC = 10;
+// Apex weekly and season resets follow 10:00 Pacific, so they move in UTC with US DST:
+//   17:00 UTC while PDT is in effect, 18:00 UTC while PST is in effect.
+// Week arithmetic below is fixed 7-day steps from `start`, so a season that crosses a DST
+// change (S32: 14 March 2027) will be an hour off after it until this is handled.
+// The tracker uses the last season whose start has passed, and archives the previous
+// season's weekly challenges when it switches. Add the next season here when it is announced.
+//   p1Wks: weeks in Part 1 (the game's Split 1). Weeks after that are Part 2.
+const SEASONS = [
+  {num:30,name:"Marked",start:"2026-08-04T17:00:00Z",wks:13,p1Wks:6}, // in-game timer, 2026-09-27
+  {num:31,name:"Cipher",start:"2026-11-03T18:00:00Z",wks:14,p1Wks:6}, // start confirmed; wks and p1Wks are pre-season guesses until the launch screenshot
+];
+let SEA_NUM,SEA_NAME,SEA_START,SEA_END,SEA_WKS,P1_WKS;
+function pickSeason(){
+  const now=new Date();
+  let i=0;
+  SEASONS.forEach((s,j)=>{if(new Date(s.start)<=now)i=j;});
+  const s=SEASONS[i],nx=SEASONS[i+1];
+  SEA_NUM=s.num;SEA_NAME=s.name;SEA_START=new Date(s.start);SEA_WKS=s.wks;P1_WKS=s.p1Wks;
+  // The next season's start is the exact end; the week count is only an estimate.
+  SEA_END=nx?new Date(nx.start):new Date(SEA_START.getTime()+SEA_WKS*7*24*3600*1000);
+}
+pickSeason();
+const DAY_RST_UTC = 10; // 10:00 UTC confirmed in summer; not yet checked in game since DST ended
 
 const CLASSES = ["Assault","Recon","Skirmisher","Support","Controller"];
 const WEAPONS = ["Assault Rifles","Submachine Guns","Light Machine Guns","Marksman Weapons","Sniper Rifles","Pistols","Shotguns","Ordnances","Akimbos","Red-Tier Weapons"];
@@ -699,6 +717,7 @@ function fmtN(n){if(!n&&n!==0)return"X";const v=parseInt(n)||0;return v.toLocale
 const DS={
   theme:"red",panel:0,selectedWeek:1,dailyEnabled:true,
   mains:{Assault:"Fuse",Recon:"Sparrow",Skirmisher:"Octane",Support:"Mirage",Controller:"Caustic"},
+  season:null,archive:{},
   weeks:{},
   progress:{},
   daily:{
@@ -727,18 +746,38 @@ function load(){
       if(!S.stats)S.stats=JSON.parse(JSON.stringify(DS.stats));
       if(!S.weeks)S.weeks={};
       if(!S.mains)S.mains={...DS.mains};
-    }
+      S.season=p.season||30; // saves from before seasons were recorded are Season 30
+    }else S.season=SEA_NUM;
   }catch(e){}
+  archiveSeason();
 }
-function save(){localStorage.setItem("cm5",JSON.stringify(S));}
+// weekLabels is written for people reading an exported file; the code keys weeks by number.
+function save(){S.weekLabels=Object.fromEntries(Object.keys(S.weeks||{}).map(w=>[w,wkLabel(+w)]));localStorage.setItem("cm5",JSON.stringify(S));}
+// Moves the weekly challenges of an earlier season into S.archive[season] and starts the
+// current season empty. Dailies, mains, theme and stats carry over. Nothing is deleted.
+function archiveSeason(){
+  if(!S.archive)S.archive={};
+  if(S.season>=SEA_NUM)return false; // never step back a season (a device clock set wrong)
+  if(Object.keys(S.weeks||{}).length||Object.keys(S.progress||{}).length){
+    let k=String(S.season);while(S.archive[k])k+="+";
+    const old=SEASONS.find(x=>x.num===S.season);
+    const weekLabels=old?Object.fromEntries(Object.keys(S.weeks||{}).map(w=>[w,wkLabel(+w,old.num,old.p1Wks)])):{};
+    S.archive[k]={weeks:S.weeks,progress:S.progress,weekLabels,archived:new Date().toISOString()};
+  }
+  S.weeks={};S.progress={};S.selectedWeek=1;S.season=SEA_NUM;
+  save();return true;
+}
 
 /* ================================================================
    TIME
 ================================================================ */
 function getCurWk(){const ms=new Date()-SEA_START;if(ms<0)return 1;return Math.min(Math.floor(ms/(7*24*3600*1000))+1,SEA_WKS);}
-function getPW(wn){return wn<=6?{part:1,week:wn}:{part:2,week:wn-6};}
+function getPW(wn){return wn<=P1_WKS?{part:1,week:wn}:{part:2,week:wn-P1_WKS};}
 function getCurPart(){return getPW(getCurWk()).part;}
-function nextWeeklyReset(){return new Date(SEA_START.getTime()+getCurWk()*7*24*3600*1000);}
+function partStartWk(part){return part===1?1:P1_WKS+1;}
+// Week label in the Windows-release style the community uses: S31H1W1 ... S31H1W6, S31H2W1.
+function wkLabel(wn,sea=SEA_NUM,p1=P1_WKS){const h=wn<=p1?1:2;return`S${sea}H${h}W${h===1?wn:wn-p1}`;}
+function nextWeeklyReset(){return new Date(Math.min(SEA_START.getTime()+getCurWk()*7*24*3600*1000,SEA_END.getTime()));}
 function nextDailyReset(){
   const now=new Date();
   const t=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),DAY_RST_UTC,0,0));
@@ -779,7 +818,7 @@ function legSatisfies(leg,c){
 // Score each main against all incomplete weekly challenges
 // Returns array of {legend, cls, score, stars, challenges[]}
 function scoreMains(){
-  const curWn=getCurWk(),cp=getCurPart(),partStart=cp===1?1:7;
+  const curWn=getCurWk(),cp=getCurPart(),partStart=partStartWk(cp);
   const dailyLeg=S.daily.fixed.play4.legend;
   const dailyCls=LEG_CLASS[dailyLeg]||"";
 
@@ -798,7 +837,7 @@ function scoreMains(){
           score++;
           stars+=parseInt(c.stars)||5;
           const{part,week}=getPW(w);
-          matching.push({c,wlbl:`P${part}W${week}`});
+          matching.push({c,wlbl:wkLabel(w)});
         }
       });
     }
@@ -935,14 +974,14 @@ function rLegend(){
   // Also score daily legend if not a main
   if(!scoreMap[dailyLeg]){
     const cls=LEG_CLASS[dailyLeg]||"";
-    const curWn=getCurWk(),cp=getCurPart(),ps=cp===1?1:7;
+    const curWn=getCurWk(),cp=getCurPart(),ps=partStartWk(cp);
     let sc=0,st=0,matching=[];
     for(let w=ps;w<=curWn;w++){
       (S.weeks[w]||[]).forEach(c=>{
         if(c.type==="reminder")return;
         const tgt=getTarget(c),val=S.progress[c.id]||0;
         if(val>=tgt)return;
-        if(legSatisfies(dailyLeg,c)){sc++;st+=parseInt(c.stars)||5;const{part,week}=getPW(w);matching.push({c,wlbl:`P${part}W${week}`});}
+        if(legSatisfies(dailyLeg,c)){sc++;st+=parseInt(c.stars)||5;matching.push({c,wlbl:wkLabel(w)});}
       });
     }
     scoreMap[dailyLeg]={leg:dailyLeg,cls,score:sc,stars:st,matching};
@@ -970,7 +1009,7 @@ function rLegend(){
 
   // Render challenges for selected legend
   const listEl=document.getElementById("legendChallengeList");
-  const curWn=getCurWk(),cp=getCurPart(),ps=cp===1?1:7;
+  const curWn=getCurWk(),cp=getCurPart(),ps=partStartWk(cp);
   let html="";
   let totalCount=0,doneCount=0;
 
@@ -1078,7 +1117,7 @@ function rSpotlight(){
   }
 
   // SECTION 3: Remaining high-priority challenges
-  const curWn=getCurWk(),cp=getCurPart(),partStart=cp===1?1:7;
+  const curWn=getCurWk(),cp=getCurPart(),partStart=partStartWk(cp);
   const remaining=[];
   for(let w=partStart;w<=curWn;w++){
     (S.weeks[w]||[]).forEach(c=>{
@@ -1100,7 +1139,7 @@ function rSpotlight(){
     html+=`<div class="spotlight-section"><div class="spotlight-section-hdr">&#127919; Focus</div>`;
     top.forEach(item=>{
       const{part,week}=getPW(item.w);
-      html+=`<div><div class="t5lbl">P${part}W${week}</div>${mkCard(item.c)}</div>`;
+      html+=`<div><div class="t5lbl">${wkLabel(item.w)}</div>${mkCard(item.c)}</div>`;
     });
     html+="</div>";
   }
@@ -1179,7 +1218,7 @@ function isDAct(s){if(s==="play2"||s==="play4")return true;return S.daily.slots[
    PANEL 2: WEEKLY
 ================================================================ */
 function rWeekSel(){
-  const sel=document.getElementById("wSel"),curWn=getCurWk(),cp=getCurPart(),partStart=cp===1?1:7;
+  const sel=document.getElementById("wSel"),curWn=getCurWk(),cp=getCurPart(),partStart=partStartWk(cp);
   sel.innerHTML="";
   for(let w=partStart;w<=curWn;w++){
     const{part,week}=getPW(w);
@@ -1189,7 +1228,7 @@ function rWeekSel(){
     const total=countable.length;
     const allDone=total>0&&done===total;
     const btn=document.createElement("button");
-    btn.className="wbtn"+(w===S.selectedWeek?" on":"")+(w===7?" p2":"")+(allDone?" wbtn-done":"");
+    btn.className="wbtn"+(w===S.selectedWeek?" on":"")+(w===P1_WKS+1?" p2":"")+(allDone?" wbtn-done":"");
     btn.innerHTML=`<span>W${week}</span><span style="display:block;font-size:10px;font-weight:400;opacity:0.8;font-family:'Share Tech Mono',monospace;letter-spacing:0">${total>0?done+"/"+total:"—"}</span>`;
     btn.onclick=()=>{S.selectedWeek=w;save();rWeekSel();rWeekly();};
     sel.appendChild(btn);
@@ -1207,7 +1246,7 @@ function rWeekly(){
   const done=wd.filter(c=>c.done);
   const countable=chs.filter(c=>c.type!=="reminder").length;
   const dc=done.length,C=119.4,rp=countable>0?(dc/countable)*100:0;
-  document.getElementById("wkTitle").textContent=`Part ${part} · Week ${week}`;
+  document.getElementById("wkTitle").textContent=`S${SEA_NUM}H${part} · Week ${week}`;
   document.getElementById("wkSub").textContent=`${dc} / ${countable} completed`;
   document.getElementById("wkRing").style.strokeDashoffset=C-(C*rp/100);
   document.getElementById("wkPct").textContent=Math.round(rp)+"%";
@@ -1221,7 +1260,7 @@ function rWeekly(){
    PANEL 3: ALL
 ================================================================ */
 function rAll(){
-  const cp=getCurPart(),curWn=getCurWk(),partStart=cp===1?1:7;
+  const cp=getCurPart(),curWn=getCurWk(),partStart=partStartWk(cp);
   let td=0,ta=0,html="";
   for(let w=partStart;w<=curWn;w++){
     const chs=S.weeks[w]||[],{part,week}=getPW(w);
@@ -1234,7 +1273,7 @@ function rAll(){
     html+=`<div class="wgrp"><div class="wghdr">Week ${week} <span>${done}/${countable.length}</span></div>${[...inc,...dn].map(c=>mkCard(c)).join("")}</div>`;
   }
   const rp=ta>0?(td/ta)*100:0,C=119.4;
-  document.getElementById("allTitle").textContent=`Part ${cp}`;
+  document.getElementById("allTitle").textContent=`S${SEA_NUM}H${cp}`;
   document.getElementById("allSub").textContent=`${td} / ${ta} completed`;
   document.getElementById("allRing").style.strokeDashoffset=C-(C*rp/100);
   document.getElementById("allPct").textContent=Math.round(rp)+"%";
@@ -1283,7 +1322,7 @@ function fixedCtr(slot,d){
     S.daily.fixed.play2.val=Math.min((S.daily.fixed.play2.val||0)+1,4);
     addStat("matches",1);
     const leg=S.daily.fixed.play4.legend,legCls=(LEG_CLASS[leg]||"").toLowerCase();
-    const curWn=getCurWk(),cp=getCurPart(),ps=cp===1?1:7;
+    const curWn=getCurWk(),cp=getCurPart(),ps=partStartWk(cp);
     for(let w=ps;w<=curWn;w++){
       (S.weeks[w]||[]).forEach(c=>{
         if(c.type!=="play_matches_class")return;
@@ -1295,7 +1334,7 @@ function fixedCtr(slot,d){
   }
   if(slot==="play2"&&d>0){
     addStat("matches",1);
-    const curWn=getCurWk(),cp=getCurPart(),ps=cp===1?1:7;
+    const curWn=getCurWk(),cp=getCurPart(),ps=partStartWk(cp);
     for(let w=ps;w<=curWn;w++){
       (S.weeks[w]||[]).forEach(c=>{
         if(c.type!=="play_matches")return;
@@ -1568,6 +1607,7 @@ function importData(ev){
     try{
       const data=JSON.parse(e.target.result);
       S={...DS,...data};if(!S.daily)S.daily=DS.daily;if(!S.stats)S.stats=JSON.parse(JSON.stringify(DS.stats));if(!S.weeks)S.weeks={};if(!S.mains)S.mains={...DS.mains};
+      S.season=data.season||30;archiveSeason();
       save();setTheme(S.theme||"red");setPanel(0);alert("Imported successfully.");
     }catch{alert("Invalid save file.");}
   };
@@ -1627,9 +1667,9 @@ function setChipUrgency(id, msLeft, pulseThresh, blinkThresh){
 
 function updInfo(){
   const now=new Date(),wn=getCurWk(),{part,week}=getPW(wn);
-  const end=new Date(SEA_START.getTime()+SEA_WKS*7*24*3600*1000);
-  const dl=Math.floor((end-now)/86400000); // whole days, like the in-game timer
-  document.getElementById("iSeason").textContent=`S30 P${part}W${week}`;
+  const dl=Math.floor((SEA_END-now)/86400000); // whole days, like the in-game timer
+  document.getElementById("iSeason").textContent=wkLabel(wn);
+  document.getElementById("hdrSub").textContent=`APEX LEGENDS · SEASON ${SEA_NUM} ${SEA_NAME.toUpperCase()}`;
   const weeklyMs=nextWeeklyReset()-now;
   const dailyMs=nextDailyReset()-now;
   document.getElementById("iWeekly").textContent=fmtCd(weeklyMs);
@@ -1641,11 +1681,18 @@ function updInfo(){
   setChipUrgency("iDaily",  dailyMs,  60*60*1000,  15*60*1000);
 }
 function chkResets(){
+  pickSeason();
+  if(archiveSeason()){
+    _lastW=getCurWk();renderP(S.panel);
+    document.getElementById("ovResetTitle").textContent=`Season ${SEA_NUM} Live`;
+    document.getElementById("ovResetBody").innerHTML=`Season ${SEA_NUM} ${SEA_NAME} has started. Your earlier weekly challenges are archived in your save.<br><strong>Add your new challenges to get started.</strong>`;
+    document.getElementById("ovReset").classList.add("on");
+  }
   const now=new Date(),wn=getCurWk();
   const db=nextDailyReset().getTime()-86400000;
   if(_lastD===null){_lastD=db;}
   else if(now.getTime()>_lastD+86400000){
-    _lastD+=86400000;
+    _lastD=db; // jump to the latest reset, so several missed days (a sleeping computer) show one popup
     trackLegApp();
     const wpnSlot=S.daily.slots.find(s=>s.type==="dmg_weapon"&&s.active);
     if(wpnSlot&&wpnSlot.wpn){if(!S.stats)S.stats=JSON.parse(JSON.stringify(DS.stats));S.stats.weapons[wpnSlot.wpn]=(S.stats.weapons[wpnSlot.wpn]||0)+1;}
@@ -1660,7 +1707,7 @@ function chkResets(){
   else if(wn!==_lastW){
     const{part,week}=getPW(wn);_lastW=wn;S.selectedWeek=wn;save();renderP(S.panel);
     document.getElementById("ovResetTitle").textContent=`Week ${week} Live`;
-    document.getElementById("ovResetBody").innerHTML=`Part ${part}, Week ${week} is now active.<br><strong>Add your new challenges to get started.</strong>`;
+    document.getElementById("ovResetBody").innerHTML=`${wkLabel(wn)} is now active.<br><strong>Add your new challenges to get started.</strong>`;
     document.getElementById("ovReset").classList.add("on");
   }
 }
@@ -1698,6 +1745,7 @@ function executeFactoryReset(){
   // Wipe everything — full factory reset
   localStorage.removeItem("cm5");
   S=JSON.parse(JSON.stringify(DS));
+  S.season=SEA_NUM;
   save();
   closeOv("ovFactory");
   setTheme("red");
