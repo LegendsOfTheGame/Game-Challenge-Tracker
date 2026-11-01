@@ -7,15 +7,30 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
   2026-11-01). Merging to `main` here publishes nothing. To publish the tracker:
   1. Merge the change to `main` here.
   2. Copy `apex/index.html` to `apex/index.html` in the legendmemoria repo.
-  3. Remove the Google Fonts `<link>` and the `manifest.json` `<link>`. That site loads nothing
+  3. Copy `apex/vendor/vue.global.prod.js` too, if it changed.
+  4. Remove the Google Fonts `<link>` and the `manifest.json` `<link>`. That site loads nothing
      from other hosts, and it has no manifest.
-  4. Push legendmemoria `main`. That push publishes the site.
+  5. Write `apex/version.json` in legendmemoria:
+     `{"v": "<Game-Challenge-Tracker main commit, 8 characters>", "t": "<push time, UTC, YYYY-MM-DDTHH:MM:SSZ>"}`.
+     Run `date -u` for the time. The rail shows the commit and the time under the version.
+     Without the file it shows "local dev".
+  6. Push legendmemoria `main`. That push publishes the site.
   The site was moved off Netlify (the user found it a constant headache); don't suggest going
   back to it.
 
 - `index.html` — landing page
 - `apex/index.html` — Challenge Memoria, the Apex Legends weekly/daily challenge tracker. Single
-  self-contained file. User data lives only in the browser's `localStorage` (key `cm5`).
+  self-contained file, plus the pinned Vue 3.5.13 in `apex/vendor/`. User data lives only in the
+  browser's `localStorage` (key `cm5`).
+- **Version:** MAJOR.MINOR.PATCH, the same rules as the HSC Ops Hub. The version is in two places
+  in `apex/index.html`: `<title>` and `#app-version` (text and `data-version`). Change both
+  before you commit a user-facing change. Put the version in the commit subject, for example
+  `Apex: ... (v0.15.1)`.
+  - Minor: something new to record, or a new area. Patch: fixes and conveniences.
+  - PATCH stops at 9: the patch after x.y.9 is x.(y+1).0. MINOR stops at 99.
+  - History: v0.14 ran to 1 November 2026, including the Season 31 commit. v0.15 was the reskin
+    and the daily-reset fix. The Vue move went live still labelled v0.15. v0.15.1 adds the
+    version line.
 - Season timing is in the `SEASONS` list in the CONSTANTS block near the top of the `<script>`
   in `apex/index.html`. Each entry has `num`, `name`, `start` (season start in UTC, not split
   start), `wks` and `p1Wks` (weeks in Split 1). Add the next season as a new entry when it is
