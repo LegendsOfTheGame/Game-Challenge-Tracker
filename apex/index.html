@@ -550,7 +550,7 @@ body{background:var(--ink);color:var(--text);font-family:var(--font-body);font-s
 
         <h3>Resets</h3>
         <p>The bottom of the rail shows one countdown at a time: weekly reset, daily reset and season end. The countdown changes every 5 seconds. Click a dot to show a countdown. A countdown that is near zero stays on the screen.</p>
-        <p>The weekly reset and the season start are on Tuesday at 10:00 Pacific time. That is 18:00 UTC in winter and 17:00 UTC in summer. The daily reset is at 10:00 UTC. This time is not confirmed for the winter.</p>
+        <p>The weekly reset and the season start are on Tuesday at 10:00 Pacific time. That is 18:00 UTC in winter and 17:00 UTC in summer. The daily reset is every day at 03:00 Pacific time. That is 11:00 UTC in winter and 10:00 UTC in summer.</p>
 
         <h3>Backups</h3>
         <p>Click the backup icon at the bottom of the rail, or open Settings and then Data. Click <code>Export Save File</code> to save a <code>.json</code> file. Click <code>Import Save File</code> to load a file.</p>
@@ -934,7 +934,15 @@ function pickSeason(){
   SEA_END=nx?new Date(nx.start):new Date(SEA_START.getTime()+SEA_WKS*7*24*3600*1000);
 }
 pickSeason();
-const DAY_RST_UTC = 10; // 10:00 UTC confirmed in summer; not yet checked in game since DST ended
+// The daily reset is 03:00 Pacific: 10:00 UTC in summer (confirmed), 11:00 UTC in winter
+// (in-game "Refreshes: 15h 1m" at 19:58 UTC on 1 November 2026).
+const DAY_RST_PT = 3;
+// Hours that UTC is ahead of Pacific time at instant d: 7 while PDT is in effect, 8 while PST is.
+function ptOffsetH(d){
+  const pt=new Date(d.toLocaleString("en-US",{timeZone:"America/Los_Angeles"}));
+  const utc=new Date(d.toLocaleString("en-US",{timeZone:"UTC"}));
+  return Math.round((utc-pt)/3600000);
+}
 
 const CLASSES = ["Assault","Recon","Skirmisher","Support","Controller"];
 const WEAPONS = ["Assault Rifles","Submachine Guns","Light Machine Guns","Marksman Weapons","Sniper Rifles","Pistols","Shotguns","Ordnances","Akimbos","Red-Tier Weapons"];
@@ -1090,8 +1098,13 @@ function wkLabel(wn,sea=SEA_NUM,p1=P1_WKS){const h=wn<=p1?1:2;return`S${sea}H${h
 function nextWeeklyReset(){return new Date(Math.min(SEA_START.getTime()+getCurWk()*7*24*3600*1000,SEA_END.getTime()));}
 function nextDailyReset(){
   const now=new Date();
-  const t=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),DAY_RST_UTC,0,0));
-  return now>=t?new Date(t.getTime()+86400000):t;
+  // 03:00 Pacific falls on the same UTC date. The offset is read at 12:00 UTC, after a DST
+  // change (which happens at 02:00 Pacific), so a change day gets that day's offset.
+  for(let i=0;i<2;i++){
+    const day=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+i);
+    const t=new Date(day+(DAY_RST_PT+ptOffsetH(new Date(day+12*3600000)))*3600000);
+    if(t>now)return t;
+  }
 }
 function fmtCd(ms){
   if(ms<=0)return"00:00:00";
@@ -2108,7 +2121,7 @@ function updInfo(){
   document.getElementById("iWeeklyWhat").textContent=
     wn>=SEA_WKS||nextWeeklyReset()>=SEA_END?(nx?`Then Season ${nx.num} ${nx.name}`:"Then the season ends"):`Then ${wkLabel(wn+1)}`;
   document.getElementById("iDaily").textContent=fmtCd(dailyMs);
-  document.getElementById("iDailyWhat").textContent=`Every day at ${String(DAY_RST_UTC).padStart(2,"0")}:00 UTC`;
+  document.getElementById("iDailyWhat").textContent=`At ${String(nextDailyReset().getUTCHours()).padStart(2,"0")}:00 UTC (03:00 Pacific)`;
   document.getElementById("iEnd").textContent=`${dl} day${dl===1?"":"s"}`;
   // With no next season in SEASONS, the end comes from the week count, which is a guess.
   document.getElementById("iEndWhat").textContent=fmtUtc(SEA_END)+(nx?"":" (estimate)");

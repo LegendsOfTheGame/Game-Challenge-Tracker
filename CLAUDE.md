@@ -25,7 +25,10 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
   | Reset                                | PT    | UTC summer (PDT) | UTC winter (PST) | ET            |
   |--------------------------------------|-------|------------------|------------------|---------------|
   | Weekly, season and split start (Tue) | 10:00 | 17:00            | 18:00            | 13:00         |
-  | Daily (`DAY_RST_UTC`)                | ?     | 10:00            | not yet checked  |               |
+  | Daily (`DAY_RST_PT`)                 | 03:00 | 10:00            | 11:00            | 06:00         |
+
+  Daily winter time confirmed 2026-11-01: the in-game "Refreshes: 15h 1m" at 19:58 UTC gives
+  11:00 UTC. The code reads the Pacific offset each day, so the daily reset needs no DST fix.
 
 ## Apex season timeline
 
