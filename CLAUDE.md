@@ -30,7 +30,7 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
   - PATCH stops at 9: the patch after x.y.9 is x.(y+1).0. MINOR stops at 99.
   - History: v0.14 ran to 1 November 2026, including the Season 31 commit. v0.15 was the reskin
     and the daily-reset fix. The Vue move went live still labelled v0.15. v0.15.1 adds the
-    version line.
+    version line. v0.15.2 makes the weekly reset follow 10:00 Pacific.
 - Season timing is in the `SEASONS` list in the CONSTANTS block near the top of the `<script>`
   in `apex/index.html`. Each entry has `num`, `name`, `start` (season start in UTC, not split
   start), `wks` and `p1Wks` (weeks in Split 1). Add the next season as a new entry when it is
@@ -41,8 +41,9 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
   preference. EA announces in Pacific Time, so convert PT times you're given.
 - **Weekly, season and split resets follow 10:00 Pacific, so they move in UTC.** Confirmed
   2026-11-01: the in-game Battle Pass Weeklies timer put the S30 end at 18:00 UTC on 2026-11-03,
-  and esports.gg gave the S31 start as 10:00 PT. The week arithmetic in the code steps 7 days from
-  `start`, so a season that crosses a US DST change (S32 crosses 2027-03-14) needs a fix.
+  and esports.gg gave the S31 start as 10:00 PT. `weekStart()` counts weeks in Pacific calendar
+  days at 10:00 Pacific (`WK_RST_PT`), so a season that crosses a US DST change (S32 crosses
+  2027-03-14) keeps the right hour. Fixed in v0.15.2.
 
   | Reset                                | PT    | UTC summer (PDT) | UTC winter (PST) | ET            |
   |--------------------------------------|-------|------------------|------------------|---------------|
