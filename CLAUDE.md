@@ -74,7 +74,9 @@ carry a `weekLabels` map with these labels; the code itself keys weeks by season
 | S30 P2W6             | 2026-10-20 17:00 | 13:00 EDT        | Matches in-game countdown seen by the user on 2026-09-27 (22d 20h at 20:24 UTC) |
 | S30 P2W7             | 2026-10-27 17:00 | 13:00 EDT        | Final week; may have no weekly challenge track of its own |
 | S30 (Marked) ends    | 2026-11-03 18:00 | 13:00 EST        | **Confirmed**: in-game "Season ends in 36 days" on 2026-09-27; Battle Pass Weeklies "Expires: 1d 22h" at 19:10 UTC on 2026-11-01. 13 weeks |
-| S31 (Cipher) starts  | 2026-11-03 18:00 | 13:00 EST        | **Confirmed**: esports.gg, 10 am PT. Length and split weeks unknown until the launch screenshot; `wks` 14 and `p1Wks` 6 are pre-season guesses |
+| S31 (Cipher) starts  | 2026-11-03 18:00 | 13:00 EST        | **Confirmed**: esports.gg, 10 am PT |
+| S31 (Cipher) ends    | 2027-02-09 18:00 | 13:00 EST        | **Confirmed**: in-game "Season ends in 97d 22h" at 19:24 UTC on 2026-11-03. 14 weeks (`wks` 14). Weekly tracks W2 to W6 visible |
+| S31 (Cipher) Split 2 | 2026-12-15 18:00 | 13:00 EST        | apexlegendsstatus.com countdown "Releases 15/12 @ 13:00" (41d 22h 17m at 19:42 UTC on 2026-11-03). 6 + 8 weeks, `p1Wks` 6. Not yet seen in game |
 
 Sources for season dates, in order of trust: the in-game timers the user reports, then
 <https://www.esportstales.com/apex-legends/season-end-date> (user's preferred reference for season
@@ -99,9 +101,10 @@ Season length varies (12–14 weeks), and splits are not always equal. `wks` and
 | S28 Breach         | 2026-02-10 | 2026-05-05 | 12    | |
 | S29 Overclocked    | 2026-05-05 | 2026-08-04 | 13    | |
 | S30 Marked         | 2026-08-04 | 2026-11-03 | 13    | 6 + 7 |
+| S31 Cipher         | 2026-11-03 | 2027-02-09 | 14    | 6 + 8 |
 
 Pattern since S20: Feb season 12 weeks, May 13, Aug 13, Nov 14 (seasons start on the first or
 second Tuesday of those months). S30 followed it (13 weeks, longer split second, like S22).
 Lesson: the number of weekly challenge tracks visible in game is not the number of weeks in the
 split. Use the in-game "Season ends in N days" timer to confirm the end date each season.
-S31 starts 2026-11-03 18:00 UTC and, per the pattern, may run 14 weeks.
+S31 runs 14 weeks, 2026-11-03 to 2027-02-09 (confirmed 2026-11-03), as the pattern predicted.
