@@ -30,7 +30,9 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
   - PATCH stops at 9: the patch after x.y.9 is x.(y+1).0. MINOR stops at 99.
   - History: v0.14 ran to 1 November 2026, including the Season 31 commit. v0.15 was the reskin
     and the daily-reset fix. The Vue move went live still labelled v0.15. v0.15.1 adds the
-    version line. v0.15.2 makes the weekly reset follow 10:00 Pacific.
+    version line. v0.15.2 makes the weekly reset follow 10:00 Pacific. v0.15.3 saves the last
+    daily and weekly reset in `cm5`, so a reset missed while the page was closed is applied on
+    load. v0.16.0 adds the "Loot X items from Strongholds" challenge (BR only).
 - Season timing is in the `SEASONS` list in the CONSTANTS block near the top of the `<script>`
   in `apex/index.html`. Each entry has `num`, `name`, `start` (season start in UTC, not split
   start), `wks` and `p1Wks` (weeks in Split 1). Add the next season as a new entry when it is
