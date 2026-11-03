@@ -4,17 +4,17 @@ Static site for legendmemoria.org. Plain HTML/CSS/JS, no build step, deployed as
 
 - **Hosting: this repo does not publish the site.** GitHub Pages is off here. legendmemoria.org
   is served by GitHub Pages from `main` of the **LegendsOfTheGame/legendmemoria** repo (checked
-  2026-11-01). Merging to `main` here publishes nothing. To publish the tracker:
-  1. Merge the change to `main` here.
-  2. Copy `apex/index.html` to `apex/index.html` in the legendmemoria repo.
-  3. Copy `apex/vendor/vue.global.prod.js` too, if it changed.
-  4. Remove the Google Fonts `<link>` and the `manifest.json` `<link>`. That site loads nothing
-     from other hosts, and it has no manifest.
-  5. Write `apex/version.json` in legendmemoria:
-     `{"v": "<Game-Challenge-Tracker main commit, 8 characters>", "t": "<push time, UTC, YYYY-MM-DDTHH:MM:SSZ>"}`.
-     Run `date -u` for the time. The rail shows the commit and the time under the version.
-     Without the file it shows "local dev".
-  6. Push legendmemoria `main`. That push publishes the site.
+  2026-11-01). To publish the tracker, merge the change to `main` here. Do not copy files into
+  legendmemoria by hand.
+  - The "Sync Apex and Lunar" workflow in legendmemoria (`.github/workflows/sync-apps.yml`, script
+    `tools/sync_apps.py`) runs every hour at minute 41. It copies `apex/` from `main` here, removes
+    the Google Fonts `<link>` and the `manifest.json` `<link>` (that site loads nothing from other
+    hosts and has no manifest), writes `apex/version.json`, commits, and starts a Pages build.
+  - `apex/version.json` is `{"v": "<commit here, 8 characters>", "t": "<sync time, UTC>"}`. The rail
+    shows the commit and the time under the version. Without the file it shows "local dev".
+  - To publish sooner, run the workflow by hand from the legendmemoria Actions tab.
+  - A file added to `apex/` here is copied too. A new link to another host in `apex/index.html` is
+    not removed: add it to `APEX_DROP` in `tools/sync_apps.py` if the site must not load it.
   The site was moved off Netlify (the user found it a constant headache); don't suggest going
   back to it.
 
