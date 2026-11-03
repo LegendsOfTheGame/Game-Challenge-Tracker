@@ -62,7 +62,9 @@ season, new version. Times are UTC; dates below are written YYYY-MM-DD.
 
 Terminology: the tracker's "Part" is the game's "Split" (Part 2 = Split 2). Labels use the
 Windows-release style the community uses: "H" is the split and "W" is the week number within
-that split. So `S30H2W1` means Season 30, Split 2, week 1 (`wkLabel()` in the code). Saves also
+that split. So `S30H2W1` means Season 30, Split 2, week 1 (`wkLabel()` in the code). Use the
+code internally (code, saves, notes). The page shows "Season 30 Split 2 Week 1" (`wkName()`),
+except the compact week buttons, which show "W1" with the full name as a tooltip. Saves also
 carry a `weekLabels` map with these labels; the code itself keys weeks by season week number. In the code,
 `getPW()` maps season weeks 1–`p1Wks` to Part 1 and the rest to Part 2 (S30: `p1Wks` 6, weeks
 7–13 = P2W1–P2W7).
